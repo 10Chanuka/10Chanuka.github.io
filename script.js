@@ -4,7 +4,7 @@ const STORAGE_KEY = 'cashbookData_v1';
 function makeId(prefix='A'){return prefix + Date.now().toString(36).slice(-6)}
 
 function defaultData(){
-  return {accounts:[], transactions:[], settings:{admin:{username:'admin', password:'admin123'}}}
+  return {accounts:[], transactions:[], settings:{admin:{username:'admin', password:'GTAigi2004'}}}
 }
 
 function load(){
