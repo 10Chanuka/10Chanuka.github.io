@@ -85,12 +85,15 @@ function renderSelected(){
 function openAccount(id){
   const acct = findAccount(id);
   if(!acct) return alert('Account not found');
-  // if admin is logged, open directly; else ask member password
+  // LOGIC MODIFIED: Admin logs in directly, Member view is now automatic
   if(currentUser && currentUser.role==='admin'){
     selectedAccount = id; renderSelected();
   } else {
-    // prompt for view password
-    MemberViewPrompt(id);
+    // Automatic member login/view without password
+    currentUser = {role:'member', id:acct.id, name:acct.name}; 
+    selectedAccount = id; 
+    userBadge.textContent = acct.name + ' (member)'; 
+    renderSelected(); 
   }
 }
 
@@ -147,29 +150,12 @@ function showAddAccount(){
   m.querySelector('#cancelBtn').addEventListener('click',closeModals)
   m.querySelector('#acctForm').addEventListener('submit',e=>{
     e.preventDefault(); const name=m.querySelector('#aName').value.trim(); const email=m.querySelector('#aEmail').value.trim(); const pass=m.querySelector('#aPass').value;
+    // Note: viewPassword is technically not used for viewing anymore, but is still stored.
     const id = createAccount({name,email,viewPassword:pass}); alert('Created account ID: '+id); closeModals();
   })
 }
 
-// Member view prompt (ask for view password)
-function MemberViewPrompt(accountId){
-  const acct = findAccount(accountId);
-  const m = modal(`<h3>Member view: ${acct.name}</h3>
-    <div class="muted-2">Enter Account ID and password to view transactions</div>
-    <form id="mvForm">
-      <div style="margin-top:8px"><input id="mvId" value="${acct.id}" readonly /></div>
-      <div style="margin-top:8px"><input id="mvPass" placeholder="Password" type="password" required /></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-        <button type="button" id="cancelBtn" class="btn">Cancel</button>
-        <button type="submit" class="btn primary">Open</button>
-      </div>
-    </form>`)
-  m.querySelector('#cancelBtn').addEventListener('click',closeModals)
-  m.querySelector('#mvForm').addEventListener('submit',e=>{
-    e.preventDefault(); const pass=m.querySelector('#mvPass').value;
-    if(pass===acct.viewPassword){ currentUser = {role:'member', id:acct.id, name:acct.name}; selectedAccount = acct.id; userBadge.textContent = acct.name + ' (member)'; closeModals(); renderSelected(); } else { alert('Invalid password') }
-  })
-}
+// REMOVED: MemberViewPrompt function is deleted as it's no longer needed for password check.
 
 // Quick txn modal (admin only)
 function showNewTxn(){
@@ -197,11 +183,14 @@ function showNewTxn(){
 /* ------------------ Actions & buttons ------------------ */
 document.getElementById('loginBtn').addEventListener('click', showLogin);
 document.getElementById('addAccountBtn').addEventListener('click', ()=>{ if(!(currentUser && currentUser.role==='admin')) return alert('Only admin can add accounts'); showAddAccount(); });
+
+// MODIFIED: Member view button now automatically logs in the selected member account
 document.getElementById('memberViewBtn').addEventListener('click', ()=>{
   // open a small chooser if there are accounts
   if(DB.accounts.length===0) return alert('No accounts yet');
   const options = DB.accounts.map(a=>`<option value="${a.id}">${a.name} (${a.id})</option>`).join('');
-  const m = modal(`<h3>Member view</h3>
+  const m = modal(`<h3>Member View Selection</h3>
+    <div class="muted-2">Select an account to view transactions (no password required).</div>
     <form id="selForm">
       <div style="margin-top:8px"><select id="selAcct">${options}</select></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
@@ -210,7 +199,19 @@ document.getElementById('memberViewBtn').addEventListener('click', ()=>{
       </div>
     </form>`)
   m.querySelector('#cancelBtn').addEventListener('click',closeModals)
-  m.querySelector('#selForm').addEventListener('submit',e=>{e.preventDefault(); const id=m.querySelector('#selAcct').value; closeModals(); MemberViewPrompt(id);})
+  m.querySelector('#selForm').addEventListener('submit',e=>{
+        e.preventDefault(); 
+        const id=m.querySelector('#selAcct').value; 
+        closeModals(); 
+        // Directly open the account as a member (password check skipped)
+        const acct = findAccount(id);
+        if(acct){
+            currentUser = {role:'member', id:acct.id, name:acct.name}; 
+            selectedAccount = acct.id; 
+            userBadge.textContent = acct.name + ' (member)'; 
+            renderSelected();
+        }
+    })
 })
 
 document.getElementById('newTxnBtn').addEventListener('click', showNewTxn);
