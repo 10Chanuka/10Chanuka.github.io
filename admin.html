@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h2>Admin Cash Entry</h2>
+
+
+<form id="entryForm">
+<input type="date" id="date" required>
+<input type="text" id="account" placeholder="Account" required>
+<select id="type">
+<option value="IN">Cash In</option>
+<option value="OUT">Cash Out</option>
+</select>
+<input type="number" id="amount" placeholder="Amount" required>
+<input type="text" id="reason" placeholder="Reason">
+<button type="submit">Submit</button>
+</form>
+
+
+<script src="script.js"></script>
+</body>
+</html>
